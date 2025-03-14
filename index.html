@@ -41,7 +41,7 @@
         .exit-button {
             background-color: #d9534f;
         }
-        /* Love prompt styles */
+        /* Love Prompt */
         .love-container {
             display: flex;
             flex-direction: column;
@@ -118,7 +118,6 @@
             initializeBricks();
             document.addEventListener("keydown", keyDownHandler);
             document.addEventListener("keyup", keyUpHandler);
-            canvas.addEventListener("touchstart", touchStartHandler);
             canvas.addEventListener("touchmove", touchMoveHandler);
             draw();
         }
