@@ -18,7 +18,7 @@
             margin: auto;
             touch-action: none;
         }
-        .menu, .court-container {
+        .menu {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -41,28 +41,44 @@
         .exit-button {
             background-color: #d9534f;
         }
-        /* Court You Modal */
+
+        /* Court You Page */
         .court-container {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
             background: linear-gradient(to bottom, #ff9a9e, #fad0c4);
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 10;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
         }
+
         .court-box {
             background: white;
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-            text-align: center;
+            display: inline-block;
         }
+
+        .buttons {
+            margin-top: 20px;
+        }
+
         .yes {
             background-color: #ff4d79;
             color: white;
             font-weight: bold;
+            transition: 0.3s ease-in-out;
         }
+
+        .yes:hover {
+            background-color: #ff1a4d;
+        }
+
         .no {
             background-color: #999;
             color: white;
@@ -76,7 +92,7 @@
     <div id="menu" class="menu">
         <h1>Block Blast</h1>
         <button onclick="startGame()">Start Game</button>
-        <button class="exit-button" onclick="showCourtModal()">Exit</button>
+        <button class="exit-button" onclick="showCourtPage()">Exit</button>
     </div>
 
     <!-- Game Container -->
@@ -86,20 +102,22 @@
         <canvas id="gameCanvas" width="480" height="320"></canvas>
     </div>
 
-    <!-- Can I Court You Modal -->
-    <div id="courtModal" class="court-container hidden">
+    <!-- Can I Court You Page -->
+    <div id="courtContainer" class="court-container">
         <div class="court-box">
             <h1>Can I court you? ❤️</h1>
             <p>I've been waiting to ask you this... Will you give me the chance to prove my love? 💕</p>
-            <button class="yes" onclick="sayYes()">Yes 💖</button>
-            <button class="no" id="noButton" onmouseover="moveNoButton()">No 😢</button>
+            <div class="buttons">
+                <button class="yes" id="yesButton" onclick="sayYes()">Yes 💖</button>
+                <button class="no" id="noButton" onmouseover="moveNoButton()">No 😢</button>
+            </div>
         </div>
     </div>
 
     <script>
         const menu = document.getElementById("menu");
         const gameContainer = document.getElementById("gameContainer");
-        const courtModal = document.getElementById("courtModal");
+        const courtContainer = document.getElementById("courtContainer");
         const levelDisplay = document.getElementById("level");
         const livesDisplay = document.getElementById("lives");
 
@@ -125,13 +143,13 @@
             initializeGame();
         }
 
-        function showCourtModal() {
-            menu.classList.add("hidden");
-            courtModal.classList.remove("hidden");
+        function showCourtPage() {
+            menu.style.display = "none";
+            courtContainer.style.display = "flex";
         }
 
         function sayYes() {
-            courtModal.innerHTML = `
+            courtContainer.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
                     <h1>Yay! ❤️</h1>
                     <p>You just made me the happiest person alive! 😍</p>
@@ -150,7 +168,3 @@
     </script>
 </body>
 </html>
-
-
-
-
