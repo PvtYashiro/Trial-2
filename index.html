@@ -116,6 +116,10 @@
             paddleX = (canvas.width - paddleWidth) / 2;
             brickRowCount = level + 1;
             initializeBricks();
+            document.addEventListener("keydown", keyDownHandler);
+            document.addEventListener("keyup", keyUpHandler);
+            canvas.addEventListener("touchstart", touchStartHandler);
+            canvas.addEventListener("touchmove", touchMoveHandler);
             draw();
         }
 
@@ -186,6 +190,21 @@
             requestAnimationFrame(draw);
         }
 
+        function keyDownHandler(event) {
+            if (event.key === "ArrowRight") rightPressed = true;
+            if (event.key === "ArrowLeft") leftPressed = true;
+        }
+
+        function keyUpHandler(event) {
+            if (event.key === "ArrowRight") rightPressed = false;
+            if (event.key === "ArrowLeft") leftPressed = false;
+        }
+
+        function touchMoveHandler(event) {
+            let touchX = event.touches[0].clientX;
+            paddleX = Math.min(canvas.width - paddleWidth, Math.max(0, touchX - paddleWidth / 2));
+        }
+
         function openLovePrompt() {
             menu.classList.add("hidden");
             gameContainer.classList.add("hidden");
@@ -198,11 +217,9 @@
 
         function moveNoButton() {
             let btn = document.getElementById("noButton");
-            btn.style.position = "absolute";
             btn.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
             btn.style.top = `${Math.random() * (window.innerHeight - 50)}px`;
-            let yesBtn = document.getElementById("yesButton");
-            yesBtn.style.fontSize = `${parseInt(getComputedStyle(yesBtn).fontSize) + 5}px`;
+            document.getElementById("yesButton").style.fontSize = `${parseInt(getComputedStyle(yesButton).fontSize) + 5}px`;
         }
     </script>
 </body>
