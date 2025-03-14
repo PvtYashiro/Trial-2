@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block Blast + Love Prompt</title>
+    <title>Block Blast</title>
     <style>
         body {
             text-align: center;
@@ -18,7 +18,7 @@
             margin: auto;
             touch-action: none;
         }
-        .menu, .love-container {
+        .menu, .court-container {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -41,32 +41,42 @@
         .exit-button {
             background-color: #d9534f;
         }
-        .love-container {
-            background: pink;
-        }
-        #yesButton {
-            font-size: 20px;
-            padding: 10px;
-            transition: 0.3s;
-        }
-        #noButton {
+        /* Court You Modal */
+        .court-container {
+            background: linear-gradient(to bottom, #ff9a9e, #fad0c4);
+            width: 100%;
+            height: 100%;
             position: absolute;
-            font-size: 20px;
-            padding: 10px;
-            background: red;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+        .court-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .yes {
+            background-color: #ff4d79;
             color: white;
-            border: none;
-            cursor: pointer;
+            font-weight: bold;
+        }
+        .no {
+            background-color: #999;
+            color: white;
+            font-weight: bold;
+            position: absolute;
         }
     </style>
 </head>
 <body>
-
-    <!-- Main Menu -->
+    <!-- Block Blast Game Menu -->
     <div id="menu" class="menu">
         <h1>Block Blast</h1>
         <button onclick="startGame()">Start Game</button>
-        <button class="exit-button" onclick="openLovePrompt()">Exit</button>
+        <button class="exit-button" onclick="showCourtModal()">Exit</button>
     </div>
 
     <!-- Game Container -->
@@ -76,54 +86,37 @@
         <canvas id="gameCanvas" width="480" height="320"></canvas>
     </div>
 
-    <!-- Love Prompt -->
-    <div id="lovePrompt" class="hidden love-container">
-        <h1>Can I court you? ❤️</h1>
-        <div>
-            <button id="yesButton" onclick="sayYes()">Yes 💖</button>
-            <button id="noButton" onmouseover="moveNoButton()">No 😢</button>
+    <!-- Can I Court You Modal -->
+    <div id="courtModal" class="court-container hidden">
+        <div class="court-box">
+            <h1>Can I court you? ❤️</h1>
+            <p>I've been waiting to ask you this... Will you give me the chance to prove my love? 💕</p>
+            <button class="yes" onclick="sayYes()">Yes 💖</button>
+            <button class="no" id="noButton" onmouseover="moveNoButton()">No 😢</button>
         </div>
     </div>
 
     <script>
         const menu = document.getElementById("menu");
         const gameContainer = document.getElementById("gameContainer");
-        const lovePrompt = document.getElementById("lovePrompt");
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
+        const courtModal = document.getElementById("courtModal");
         const levelDisplay = document.getElementById("level");
         const livesDisplay = document.getElementById("lives");
-        const noButton = document.getElementById("noButton");
 
-        let ballX, ballY, ballDX, ballDY, ballRadius, paddleX;
+        let ballX, ballY, ballDX, ballDY, ballRadius, paddleHeight, paddleWidth, paddleX;
         let rightPressed = false, leftPressed = false;
-        let level = 1, maxLevels = 3, lives = 3;
-        let paddleHeight = 10, paddleWidth = 75;
-        let bricks = [];
-        let brickColumnCount = 5, brickWidth = 75, brickHeight = 20, brickPadding = 10, brickOffsetTop = 30, brickOffsetLeft = 30;
-        let animationFrame;
+        let level = 1, lives = 3;
 
         function initializeGame() {
-            ballX = canvas.width / 2;
-            ballY = canvas.height - 30;
+            ballX = gameCanvas.width / 2;
+            ballY = gameCanvas.height - 30;
             ballDX = 2;
             ballDY = -2;
             ballRadius = 10;
-            paddleX = (canvas.width - paddleWidth) / 2;
-            initializeBricks();
+            paddleHeight = 10;
+            paddleWidth = 75;
+            paddleX = (gameCanvas.width - paddleWidth) / 2;
             draw();
-        }
-
-        function initializeBricks() {
-            bricks = [];
-            for(let c = 0; c < brickColumnCount; c++) {
-                bricks[c] = [];
-                for(let r = 0; r < level + 1; r++) {
-                    let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
-                    let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
-                    bricks[c][r] = { x: brickX, y: brickY, status: 1 };
-                }
-            }
         }
 
         function startGame() {
@@ -132,91 +125,32 @@
             initializeGame();
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBricks();
-            drawBall();
-            drawPaddle();
-            collisionDetection();
-
-            if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) ballDX = -ballDX;
-            if (ballY + ballDY < ballRadius) ballDY = -ballDY;
-            else if (ballY + ballDY > canvas.height - paddleHeight - ballRadius) {
-                if (ballX > paddleX && ballX < paddleX + paddleWidth) {
-                    ballDY = -ballDY;
-                } else {
-                    lives--;
-                    livesDisplay.textContent = lives;
-                    if (lives === 0) {
-                        alert("Game Over!");
-                        document.location.reload();
-                    } else {
-                        ballX = canvas.width / 2;
-                        ballY = canvas.height - 30;
-                        ballDX = 2;
-                        ballDY = -2;
-                    }
-                }
-            }
-            ballX += ballDX;
-            ballY += ballDY;
-            animationFrame = requestAnimationFrame(draw);
-        }
-
-        function drawBricks() {
-            for (let c = 0; c < brickColumnCount; c++) {
-                for (let r = 0; r < level + 1; r++) {
-                    if (bricks[c][r].status === 1) {
-                        ctx.fillStyle = "red";
-                        ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
-                    }
-                }
-            }
-        }
-
-        function drawBall() {
-            ctx.beginPath();
-            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        function drawPaddle() {
-            ctx.fillStyle = "blue";
-            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
-        }
-
-        function openLovePrompt() {
-            cancelAnimationFrame(animationFrame);
+        function showCourtModal() {
             menu.classList.add("hidden");
-            gameContainer.classList.add("hidden");
-            lovePrompt.classList.remove("hidden");
+            courtModal.classList.remove("hidden");
         }
 
         function sayYes() {
-            document.body.innerHTML = `<h1 style="color: red;">Yay! You said Yes! ❤️</h1>`;
+            courtModal.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
+                    <h1>Yay! ❤️</h1>
+                    <p>You just made me the happiest person alive! 😍</p>
+                    <p>Can't wait to start this journey with you! 💕</p>
+                </div>
+            `;
         }
 
         function moveNoButton() {
-            noButton.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
-            noButton.style.top = `${Math.random() * (window.innerHeight - 50)}px`;
+            let btn = document.getElementById("noButton");
+            let x = Math.random() * (window.innerWidth - 100);
+            let y = Math.random() * (window.innerHeight - 50);
+            btn.style.left = x + "px";
+            btn.style.top = y + "px";
         }
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "ArrowRight") paddleX += 20;
-            if (event.key === "ArrowLeft") paddleX -= 20;
-        });
-
-        document.addEventListener("mousemove", (event) => {
-            let relativeX = event.clientX - canvas.offsetLeft;
-            if (relativeX > 0 && relativeX < canvas.width) {
-                paddleX = relativeX - paddleWidth / 2;
-            }
-        });
     </script>
 </body>
 </html>
+
 
 
 
