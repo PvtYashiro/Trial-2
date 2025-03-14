@@ -140,13 +140,37 @@
             initializeGame();
         }
 
+        function exitGame() {
+            let confirmExit = confirm("Are you sure you want to exit?");
+            if (confirmExit) {
+                window.close();
+                alert("Your browser does not support closing via script. Please close manually.");
+            }
+        }
+
         function drawBricks() {
+            let allCleared = true;
             for(let c = 0; c < brickColumnCount; c++) {
                 for(let r = 0; r < brickRowCount; r++) {
                     if (bricks[c][r].status === 1) {
                         ctx.fillStyle = "red";
                         ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
+                        allCleared = false;
                     }
+                }
+            }
+            if (allCleared) {
+                if (level < maxLevels) {
+                    if (confirm("Level cleared! Proceed to the next level?")) {
+                        level++;
+                        levelDisplay.textContent = level;
+                        initializeGame();
+                    } else {
+                        document.location.reload();
+                    }
+                } else {
+                    alert("Congratulations! You cleared all levels!");
+                    document.location.reload();
                 }
             }
         }
@@ -184,24 +208,60 @@
             drawBall();
             drawPaddle();
             collisionDetection();
+
+            if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
+                ballDX = -ballDX;
+            }
+            if (ballY + ballDY < ballRadius) {
+                ballDY = -ballDY;
+            } else if (ballY + ballDY > canvas.height - paddleHeight - ballRadius) {
+                if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+                    ballDY = -ballDY;
+                } else {
+                    lives--;
+                    livesDisplay.textContent = lives;
+                    if (lives === 0) {
+                        alert("Game Over!");
+                        document.location.reload();
+                    } else {
+                        ballX = canvas.width / 2;
+                        ballY = canvas.height - 30;
+                        ballDX = 2;
+                        ballDY = -2;
+                    }
+                }
+            }
             ballX += ballDX;
             ballY += ballDY;
             requestAnimationFrame(draw);
         }
 
-        function keyDownHandler(event) {
+        document.addEventListener("keydown", (event) => {
             if (event.key === "ArrowRight") rightPressed = true;
             if (event.key === "ArrowLeft") leftPressed = true;
-        }
+        });
 
-        function keyUpHandler(event) {
+        document.addEventListener("keyup", (event) => {
             if (event.key === "ArrowRight") rightPressed = false;
             if (event.key === "ArrowLeft") leftPressed = false;
-        }
+        });
 
-        function touchMoveHandler(event) {
-            let touchX = event.touches[0].clientX;
-            paddleX = Math.min(canvas.width - paddleWidth, Math.max(0, touchX - paddleWidth / 2));
+        document.addEventListener("mousemove", (event) => {
+            let relativeX = event.clientX - canvas.offsetLeft;
+            if (relativeX > 0 && relativeX < canvas.width) {
+                paddleX = relativeX - paddleWidth / 2;
+            }
+        });
+
+        canvas.addEventListener("touchmove", (event) => {
+            let touchX = event.touches[0].clientX - canvas.offsetLeft;
+            paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, touchX - paddleWidth / 2));
+        });
+
+        function updatePaddle() {
+            if (rightPressed) paddleX = Math.min(canvas.width - paddleWidth, paddleX + 5);
+            if (leftPressed) paddleX = Math.max(0, paddleX - 5);
+            requestAnimationFrame(updatePaddle);
         }
 
         function openLovePrompt() {
