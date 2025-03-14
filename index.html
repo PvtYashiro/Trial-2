@@ -93,7 +93,6 @@
         const ctx = canvas.getContext("2d");
         const levelDisplay = document.getElementById("level");
         const livesDisplay = document.getElementById("lives");
-        const yesButton = document.getElementById("yesButton");
         const noButton = document.getElementById("noButton");
 
         let ballX, ballY, ballDX, ballDY, ballRadius, paddleX;
@@ -165,26 +164,27 @@
         }
 
         function drawBricks() {
-            let allCleared = true;
             for (let c = 0; c < brickColumnCount; c++) {
                 for (let r = 0; r < level + 1; r++) {
                     if (bricks[c][r].status === 1) {
                         ctx.fillStyle = "red";
                         ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
-                        allCleared = false;
                     }
                 }
             }
-            if (allCleared) {
-                if (level < maxLevels) {
-                    level++;
-                    levelDisplay.textContent = level;
-                    initializeGame();
-                } else {
-                    alert("Congratulations! You won!");
-                    document.location.reload();
-                }
-            }
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
         }
 
         function openLovePrompt() {
@@ -201,17 +201,11 @@
         function moveNoButton() {
             noButton.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
             noButton.style.top = `${Math.random() * (window.innerHeight - 50)}px`;
-            yesButton.style.fontSize = `${parseInt(getComputedStyle(yesButton).fontSize) + 5}px`;
         }
 
         document.addEventListener("keydown", (event) => {
-            if (event.key === "ArrowRight") rightPressed = true;
-            if (event.key === "ArrowLeft") leftPressed = true;
-        });
-
-        document.addEventListener("keyup", (event) => {
-            if (event.key === "ArrowRight") rightPressed = false;
-            if (event.key === "ArrowLeft") leftPressed = false;
+            if (event.key === "ArrowRight") paddleX += 20;
+            if (event.key === "ArrowLeft") paddleX -= 20;
         });
 
         document.addEventListener("mousemove", (event) => {
@@ -220,13 +214,9 @@
                 paddleX = relativeX - paddleWidth / 2;
             }
         });
-
-        canvas.addEventListener("touchmove", (event) => {
-            let touchX = event.touches[0].clientX - canvas.offsetLeft;
-            paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, touchX - paddleWidth / 2));
-        });
     </script>
 </body>
 </html>
+
 
 
