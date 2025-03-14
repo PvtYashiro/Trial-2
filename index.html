@@ -42,69 +42,58 @@
             background-color: #d9534f;
         }
 
-        /* Court You Page */
+        /* Styling for "Can I Court You?" screen */
         .court-container {
-            font-family: 'Arial', sans-serif;
-            text-align: center;
-            background: linear-gradient(to bottom, #ff9a9e, #fad0c4);
-            overflow: hidden;
-            margin: 0;
-            height: 100vh;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .court-box {
             background: white;
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
             display: inline-block;
+            color: black;
         }
-
         .buttons {
             margin-top: 20px;
         }
-
         .yes {
             background-color: #ff4d79;
             color: white;
+            font-size: 18px;
+            padding: 12px 20px;
+            border-radius: 8px;
             font-weight: bold;
             transition: 0.3s ease-in-out;
         }
-
         .yes:hover {
             background-color: #ff1a4d;
         }
-
         .no {
             background-color: #999;
             color: white;
             font-weight: bold;
             position: absolute;
+            border-radius: 8px;
+            padding: 12px 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Block Blast Game Menu -->
+    <!-- Block Blast Menu -->
     <div id="menu" class="menu">
         <h1>Block Blast</h1>
         <button onclick="startGame()">Start Game</button>
-        <button class="exit-button" onclick="showCourtPage()">Exit</button>
+        <button class="exit-button" onclick="showCourtScreen()">Exit</button>
     </div>
 
-    <!-- Game Container -->
+    <!-- Block Blast Game Screen -->
     <div id="gameContainer" class="hidden">
         <h1>Block Blast</h1>
         <p>Level: <span id="level">1</span> | Lives: <span id="lives">3</span></p>
         <canvas id="gameCanvas" width="480" height="320"></canvas>
     </div>
 
-    <!-- Can I Court You Page -->
-    <div id="courtContainer" class="court-container">
-        <div class="court-box">
+    <!-- "Can I Court You?" Screen -->
+    <div id="courtContainer" class="hidden">
+        <div class="court-container">
             <h1>Can I court you? ❤️</h1>
             <p>I've been waiting to ask you this... Will you give me the chance to prove my love? 💕</p>
             <div class="buttons">
@@ -118,23 +107,41 @@
         const menu = document.getElementById("menu");
         const gameContainer = document.getElementById("gameContainer");
         const courtContainer = document.getElementById("courtContainer");
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
         const levelDisplay = document.getElementById("level");
         const livesDisplay = document.getElementById("lives");
 
         let ballX, ballY, ballDX, ballDY, ballRadius, paddleHeight, paddleWidth, paddleX;
         let rightPressed = false, leftPressed = false;
-        let level = 1, lives = 3;
+        let level = 1, maxLevels = 3, lives = 3;
+        let brickRowCount, brickColumnCount = 5, brickWidth = 75, brickHeight = 20, brickPadding = 10, brickOffsetTop = 30, brickOffsetLeft = 30;
+        let bricks = [];
 
         function initializeGame() {
-            ballX = gameCanvas.width / 2;
-            ballY = gameCanvas.height - 30;
+            ballX = canvas.width / 2;
+            ballY = canvas.height - 30;
             ballDX = 2;
             ballDY = -2;
             ballRadius = 10;
             paddleHeight = 10;
             paddleWidth = 75;
-            paddleX = (gameCanvas.width - paddleWidth) / 2;
+            paddleX = (canvas.width - paddleWidth) / 2;
+            brickRowCount = level + 1;
+            initializeBricks();
             draw();
+        }
+
+        function initializeBricks() {
+            bricks = [];
+            for(let c = 0; c < brickColumnCount; c++) {
+                bricks[c] = [];
+                for(let r = 0; r < brickRowCount; r++) {
+                    let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+                    let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+                    bricks[c][r] = { x: brickX, y: brickY, status: 1 };
+                }
+            }
         }
 
         function startGame() {
@@ -143,28 +150,82 @@
             initializeGame();
         }
 
-        function showCourtPage() {
-            menu.style.display = "none";
-            courtContainer.style.display = "flex";
+        function showCourtScreen() {
+            menu.classList.add("hidden");
+            courtContainer.classList.remove("hidden");
         }
 
-        function sayYes() {
-            courtContainer.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
-                    <h1>Yay! ❤️</h1>
-                    <p>You just made me the happiest person alive! 😍</p>
-                    <p>Can't wait to start this journey with you! 💕</p>
-                </div>
-            `;
+        function drawBricks() {
+            for(let c = 0; c < brickColumnCount; c++) {
+                for(let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        ctx.fillStyle = "red";
+                        ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
+                    }
+                }
+            }
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            ballX += ballDX;
+            ballY += ballDY;
+
+            if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
+                ballDX = -ballDX;
+            }
+            if (ballY + ballDY < ballRadius) {
+                ballDY = -ballDY;
+            } else if (ballY + ballDY > canvas.height - paddleHeight - ballRadius) {
+                if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+                    ballDY = -ballDY;
+                } else {
+                    lives--;
+                    livesDisplay.textContent = lives;
+                    if (lives === 0) {
+                        alert("Game Over!");
+                        document.location.reload();
+                    }
+                }
+            }
+            requestAnimationFrame(draw);
         }
 
         function moveNoButton() {
             let btn = document.getElementById("noButton");
-            let x = Math.random() * (window.innerWidth - 100);
-            let y = Math.random() * (window.innerHeight - 50);
-            btn.style.left = x + "px";
-            btn.style.top = y + "px";
+            btn.style.left = Math.random() * (window.innerWidth - 100) + "px";
+            btn.style.top = Math.random() * (window.innerHeight - 50) + "px";
         }
+
+        function sayYes() {
+            courtContainer.innerHTML = "<h1>Yay! ❤️</h1><p>You made me so happy! 😍</p>";
+        }
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "ArrowRight") rightPressed = true;
+            if (event.key === "ArrowLeft") leftPressed = true;
+        });
+
+        document.addEventListener("keyup", event => {
+            if (event.key === "ArrowRight") rightPressed = false;
+            if (event.key === "ArrowLeft") leftPressed = false;
+        });
     </script>
 </body>
 </html>
