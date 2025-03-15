@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block Blast</title>
+    <title>Block Blast & Courtship Prompt</title>
     <style>
         body {
             text-align: center;
@@ -11,14 +11,14 @@
             color: white;
             font-family: Arial, sans-serif;
             overflow: hidden;
-            margin: 0;
         }
         canvas {
             background: #000;
             display: block;
             margin: auto;
+            touch-action: none;
         }
-        .menu, .courting {
+        .menu, .courtship {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -37,116 +37,56 @@
             color: white;
             border-radius: 5px;
             margin: 10px;
+            transition: transform 0.3s ease;
         }
         .exit-button {
             background-color: #d9534f;
         }
-        .courting {
-            background: linear-gradient(to bottom, #ff9a9e, #fad0c4);
+        #yes {
+            font-size: 20px;
         }
-        .courting h1, .courting p {
-            color: black;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        .buttons {
-            margin-top: 20px;
-        }
-        .yes, .no {
-            font-size: 18px;
-            padding: 12px 20px;
-            border: none;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: 0.3s;
-        }
-        .yes {
-            background-color: #ff4d79;
-            color: white;
-            font-weight: bold;
-        }
-        .yes:hover {
-            background-color: #ff1a4d;
-        }
-        .no {
-            background-color: #999;
-            color: white;
-            font-weight: bold;
+        #no {
+            position: absolute;
+            font-size: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Block Blast Menu -->
+    <!-- Block Blast Game Menu -->
     <div id="menu" class="menu">
         <h1>Block Blast</h1>
         <button onclick="startGame()">Start Game</button>
         <button class="exit-button" onclick="exitGame()">Exit</button>
     </div>
 
-    <!-- Game Screen -->
+    <!-- Block Blast Game -->
     <div id="gameContainer" class="hidden">
         <h1>Block Blast</h1>
-        <p>Lives: <span id="lives">3</span></p>
+        <p>Level: <span id="level">1</span> | Lives: <span id="lives">3</span></p>
         <canvas id="gameCanvas" width="480" height="320"></canvas>
     </div>
 
-    <!-- Can I Court You? Screen -->
-    <div id="courting" class="courting hidden">
-        <div class="container">
-            <h1>Can I court you? ❤️</h1>
-            <p>Will you give me the chance to prove my love? 💕</p>
-            <div class="buttons">
-                <button class="yes" id="yesButton" onclick="sayYes()">Yes 💖</button>
-                <button class="no" id="noButton" onclick="increaseYesSize()">No 😢</button>
-            </div>
-        </div>
+    <!-- Courtship Prompt -->
+    <div id="courtship" class="courtship hidden">
+        <h1>Can I court you?</h1>
+        <button id="yes" onclick="acceptCourtship()">Yes</button>
+        <button id="no" onmouseover="moveNoButton()">No</button>
     </div>
 
     <script>
         const menu = document.getElementById("menu");
         const gameContainer = document.getElementById("gameContainer");
-        const courtingScreen = document.getElementById("courting");
-        const yesButton = document.getElementById("yesButton");
-        const noButton = document.getElementById("noButton");
-
+        const courtship = document.getElementById("courtship");
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
+        const levelDisplay = document.getElementById("level");
+        const livesDisplay = document.getElementById("lives");
 
         let ballX, ballY, ballDX, ballDY, ballRadius, paddleHeight, paddleWidth, paddleX;
         let rightPressed = false, leftPressed = false;
-        let lives = 3;
-
-        function startGame() {
-            menu.classList.add("hidden");
-            gameContainer.classList.remove("hidden");
-            initializeGame();
-            draw();
-        }
-
-        function exitGame() {
-            menu.classList.add("hidden");
-            gameContainer.classList.add("hidden");
-            courtingScreen.classList.remove("hidden");
-        }
-
-        function sayYes() {
-            document.body.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
-                    <h1>Yay! ❤️</h1>
-                    <p>You just made me the happiest person alive! 😍</p>
-                    <p>Can't wait to start this journey with you! 💕</p>
-                </div>
-            `;
-        }
-
-        function increaseYesSize() {
-            let currentSize = parseFloat(window.getComputedStyle(yesButton).fontSize);
-            yesButton.style.fontSize = (currentSize + 5) + "px";
-        }
+        let level = 1, maxLevels = 3, lives = 3;
+        let brickRowCount, brickColumnCount = 5, brickWidth = 75, brickHeight = 20, brickPadding = 10, brickOffsetTop = 30, brickOffsetLeft = 30;
+        let bricks = [];
 
         function initializeGame() {
             ballX = canvas.width / 2;
@@ -157,66 +97,132 @@
             paddleHeight = 10;
             paddleWidth = 75;
             paddleX = (canvas.width - paddleWidth) / 2;
+            brickRowCount = level + 1;
+            initializeBricks();
             draw();
+        }
+
+        function initializeBricks() {
+            bricks = [];
+            for(let c = 0; c < brickColumnCount; c++) {
+                bricks[c] = [];
+                for(let r = 0; r < brickRowCount; r++) {
+                    let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+                    let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+                    bricks[c][r] = { x: brickX, y: brickY, status: 1 };
+                }
+            }
+        }
+
+        function startGame() {
+            menu.classList.add("hidden");
+            gameContainer.classList.remove("hidden");
+            initializeGame();
+        }
+
+        function exitGame() {
+            gameContainer.classList.add("hidden");
+            courtship.classList.remove("hidden");
+        }
+
+        function drawBricks() {
+            let allCleared = true;
+            for(let c = 0; c < brickColumnCount; c++) {
+                for(let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        ctx.fillStyle = "red";
+                        ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
+                        allCleared = false;
+                    }
+                }
+            }
+            if (allCleared) {
+                if (level < maxLevels) {
+                    if (confirm("Level cleared! Proceed to the next level?")) {
+                        level++;
+                        levelDisplay.textContent = level;
+                        initializeGame();
+                    } else {
+                        exitGame();
+                    }
+                } else {
+                    alert("Congratulations! You cleared all levels!");
+                    exitGame();
+                }
+            }
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
         }
 
         function drawBall() {
             ctx.beginPath();
             ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-            ctx.fillStyle = "#fff";
+            ctx.fillStyle = "white";
             ctx.fill();
             ctx.closePath();
         }
 
-        function drawPaddle() {
-            ctx.beginPath();
-            ctx.rect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight);
-            ctx.fillStyle = "#fff";
-            ctx.fill();
-            ctx.closePath();
+        function collisionDetection() {
+            for(let c = 0; c < brickColumnCount; c++) {
+                for(let r = 0; r < brickRowCount; r++) {
+                    let brick = bricks[c][r];
+                    if (brick.status === 1) {
+                        if (ballX > brick.x && ballX < brick.x + brickWidth && ballY > brick.y && ballY < brick.y + brickHeight) {
+                            ballDY = -ballDY;
+                            brick.status = 0;
+                        }
+                    }
+                }
+            }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
             drawBall();
             drawPaddle();
+            collisionDetection();
 
             if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
                 ballDX = -ballDX;
             }
-
             if (ballY + ballDY < ballRadius) {
                 ballDY = -ballDY;
-            } else if (ballY + ballDY > canvas.height - ballRadius - paddleHeight - 10) {
+            } else if (ballY + ballDY > canvas.height - paddleHeight - ballRadius) {
                 if (ballX > paddleX && ballX < paddleX + paddleWidth) {
                     ballDY = -ballDY;
                 } else {
                     lives--;
-                    if (lives <= 0) {
+                    livesDisplay.textContent = lives;
+                    if (lives === 0) {
+                        alert("Game Over!");
                         exitGame();
-                        return;
+                    } else {
+                        ballX = canvas.width / 2;
+                        ballY = canvas.height - 30;
+                        ballDX = 2;
+                        ballDY = -2;
                     }
-                    ballX = canvas.width / 2;
-                    ballY = canvas.height - 30;
-                    ballDX = 2;
-                    ballDY = -2;
                 }
             }
-
             ballX += ballDX;
             ballY += ballDY;
-
-            document.getElementById("lives").textContent = lives;
             requestAnimationFrame(draw);
         }
 
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Right" || event.key === "ArrowRight") {
-                paddleX = Math.min(paddleX + 20, canvas.width - paddleWidth);
-            } else if (event.key === "Left" || event.key === "ArrowLeft") {
-                paddleX = Math.max(paddleX - 20, 0);
-            }
-        });
+        function moveNoButton() {
+            const noButton = document.getElementById("no");
+            noButton.style.top = `${Math.random() * 80 + 10}vh`;
+            noButton.style.left = `${Math.random() * 80 + 10}vw`;
+            document.getElementById("yes").style.transform = "scale(1.3)";
+        }
+
+        function acceptCourtship() {
+            alert("Yay! Let's start our journey together! ❤️");
+        }
     </script>
 </body>
 </html>
