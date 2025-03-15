@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block Blast</title>
+    <title>Block Blast & Can I Court You?</title>
     <style>
         body {
             text-align: center;
@@ -13,12 +13,12 @@
             overflow: hidden;
         }
         canvas {
-            background: black;
+            background: #000;
             display: block;
             margin: auto;
             touch-action: none;
         }
-        .menu {
+        .menu, .container {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -49,150 +49,52 @@
         <button onclick="startGame()">Start Game</button>
         <button class="exit-button" onclick="exitGame()">Exit</button>
     </div>
-
     <div id="gameContainer" class="hidden">
         <h1>Block Blast</h1>
         <p>Level: <span id="level">1</span> | Lives: <span id="lives">3</span></p>
         <canvas id="gameCanvas" width="480" height="320"></canvas>
     </div>
-
+    <div id="courtContainer" class="hidden">
+        <div class="container">
+            <h1>Can I court you? ❤️</h1>
+            <p>I've been waiting to ask you this... Will you give me the chance to prove my love? 💕</p>
+            <div class="buttons">
+                <button class="yes" id="yesButton" onclick="sayYes()">Yes 💖</button>
+                <button class="no" id="noButton" onmouseover="moveNoButton()">No 😢</button>
+            </div>
+        </div>
+    </div>
     <script>
-        const menu = document.getElementById("menu");
-        const gameContainer = document.getElementById("gameContainer");
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        const levelDisplay = document.getElementById("level");
-        const livesDisplay = document.getElementById("lives");
-
-        let ballX, ballY, ballDX, ballDY, ballRadius, paddleX, paddleWidth, paddleHeight;
-        let rightPressed = false, leftPressed = false;
-        let level = 1, maxLevels = 3, lives = 3;
-        let brickRowCount, brickColumnCount = 5, brickWidth = 75, brickHeight = 20, brickPadding = 10, brickOffsetTop = 30, brickOffsetLeft = 30;
-        let bricks = [];
-
-        function initializeGame() {
-            ballX = canvas.width / 2;
-            ballY = canvas.height - 30;
-            ballDX = 2;
-            ballDY = -2;
-            ballRadius = 10;
-            paddleWidth = 75;
-            paddleHeight = 10;
-            paddleX = (canvas.width - paddleWidth) / 2;
-            brickRowCount = level + 1;
-            initializeBricks();
-            draw();
+        function switchToCourt() {
+            document.getElementById("menu").classList.add("hidden");
+            document.getElementById("courtContainer").classList.remove("hidden");
         }
-
-        function initializeBricks() {
-            bricks = [];
-            for (let c = 0; c < brickColumnCount; c++) {
-                bricks[c] = [];
-                for (let r = 0; r < brickRowCount; r++) {
-                    let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
-                    let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
-                    bricks[c][r] = { x: brickX, y: brickY, status: 1 };
-                }
+        function startGame() {
+            document.getElementById("menu").classList.add("hidden");
+            document.getElementById("gameContainer").classList.remove("hidden");
+        }
+        function exitGame() {
+            if (confirm("Are you sure you want to exit?")) {
+                window.close();
+                alert("Your browser does not support closing via script. Please close manually.");
             }
         }
-
-        function startGame() {
-            menu.classList.add("hidden");
-            gameContainer.classList.remove("hidden");
-            initializeGame();
-        }
-
-        function exitGame() {
-            document.body.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: linear-gradient(to bottom, #ff9a9e, #fad0c4); text-align: center;">
-                    <h1 style="color: black;">Can I court you? ❤️</h1>
-                    <p style="color: black;">I've been waiting to ask you this... Will you give me the chance to prove my love? 💕</p>
-                    <div>
-                        <button class="yes" onclick="sayYes()" style="font-size: 18px; padding: 12px 20px; background-color: #ff4d79; color: white; font-weight: bold; border: none; cursor: pointer; border-radius: 8px;">Yes 💖</button>
-                        <button class="no" id="noButton" onmouseover="moveNoButton()" style="font-size: 18px; padding: 12px 20px; background-color: #999; color: white; font-weight: bold; position: absolute; border: none; cursor: pointer; border-radius: 8px;">No 😢</button>
-                    </div>
-                </div>
-            `;
-            createHearts();
-        }
-
         function sayYes() {
-            document.body.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: linear-gradient(to bottom, #ff9a9e, #fad0c4); text-align: center;">
-                    <h1 style="color: black;">Yay! ❤️</h1>
-                    <p style="color: black;">You just made me the happiest person alive! 😍</p>
-                    <p style="color: black;">Can't wait to start this journey with you! 💕</p>
-                </div>
-            `;
+            document.body.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
+                <h1>Yay! ❤️</h1>
+                <p>You just made me the happiest person alive! 😍</p>
+                <p>Can't wait to start this journey with you! 💕</p>
+            </div>`;
         }
-
         function moveNoButton() {
             let btn = document.getElementById("noButton");
-            let x = Math.random() * (window.innerWidth - 200);
-            let y = Math.random() * (window.innerHeight - 100);
+            let x = Math.random() * (window.innerWidth - 100);
+            let y = Math.random() * (window.innerHeight - 50);
             btn.style.left = x + "px";
             btn.style.top = y + "px";
         }
-
-        function createHearts() {
-            setInterval(() => {
-                let heart = document.createElement("div");
-                heart.innerHTML = "❤️";
-                heart.style.position = "absolute";
-                heart.style.left = Math.random() * 100 + "vw";
-                heart.style.top = "100vh";
-                heart.style.color = "rgba(255, 255, 255, 0.8)";
-                heart.style.fontSize = "30px";
-                heart.style.animation = "floatUp 5s infinite";
-                document.body.appendChild(heart);
-                setTimeout(() => heart.remove(), 5000);
-            }, 300);
-        }
-
-        function drawBricks() {
-            let allCleared = true;
-            for (let c = 0; c < brickColumnCount; c++) {
-                for (let r = 0; r < brickRowCount; r++) {
-                    if (bricks[c][r].status === 1) {
-                        ctx.fillStyle = "red";
-                        ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
-                        allCleared = false;
-                    }
-                }
-            }
-            if (allCleared) {
-                if (level < maxLevels) {
-                    if (confirm("Level cleared! Proceed to the next level?")) {
-                        level++;
-                        levelDisplay.textContent = level;
-                        initializeGame();
-                    } else {
-                        document.location.reload();
-                    }
-                } else {
-                    alert("Congratulations! You cleared all levels!");
-                    document.location.reload();
-                }
-            }
-        }
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "ArrowRight") rightPressed = true;
-            if (event.key === "ArrowLeft") leftPressed = true;
-        });
-
-        document.addEventListener("keyup", (event) => {
-            if (event.key === "ArrowRight") rightPressed = false;
-            if (event.key === "ArrowLeft") leftPressed = false;
-        });
-
-        function updatePaddle() {
-            if (rightPressed) paddleX = Math.min(canvas.width - paddleWidth, paddleX + 5);
-            if (leftPressed) paddleX = Math.max(0, paddleX - 5);
-            requestAnimationFrame(updatePaddle);
-        }
-
-        updatePaddle();
     </script>
+    <button onclick="switchToCourt()">Switch to Court Question</button>
 </body>
 </html>
+
