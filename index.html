@@ -10,14 +10,13 @@
             background-color: #222;
             color: white;
             font-family: Arial, sans-serif;
-            overflow: hidden;
             margin: 0;
+            overflow: hidden;
         }
         canvas {
-            background: #000;
+            background: black;
             display: block;
             margin: auto;
-            touch-action: none;
         }
         .menu, .love-container {
             display: flex;
@@ -134,7 +133,9 @@
             paddleX = (canvas.width - paddleWidth) / 2;
             brickRowCount = level + 1;
             initializeBricks();
-            draw();
+            document.addEventListener("keydown", keyDownHandler);
+            document.addEventListener("keyup", keyUpHandler);
+            requestAnimationFrame(draw);
         }
 
         function initializeBricks() {
@@ -145,6 +146,38 @@
                     let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
                     let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
                     bricks[c][r] = { x: brickX, y: brickY, status: 1 };
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            drawPaddle();
+            drawBricks();
+            requestAnimationFrame(draw);
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = "white";
+            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        }
+
+        function drawBricks() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        ctx.fillStyle = "blue";
+                        ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
+                    }
                 }
             }
         }
@@ -161,13 +194,7 @@
         }
 
         function sayYes() {
-            loveContainer.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
-                    <h1>Yay! ❤️</h1>
-                    <p>You just made me the happiest person alive! 😍</p>
-                    <p>Can't wait to start this journey with you! 💕</p>
-                </div>
-            `;
+            loveContainer.innerHTML = `<h1>Yay! ❤️</h1><p>You just made me the happiest person alive! 😍</p>`;
         }
 
         function moveNoButton() {
@@ -176,9 +203,6 @@
             let y = Math.random() * (window.innerHeight - 50);
             btn.style.left = x + "px";
             btn.style.top = y + "px";
-
-            let yesButton = document.getElementById("yesButton");
-            yesButton.style.fontSize = parseInt(window.getComputedStyle(yesButton).fontSize) + 5 + "px";
         }
 
         function createHearts() {
@@ -187,7 +211,6 @@
                 heart.classList.add("heart");
                 heart.innerHTML = "❤️";
                 heart.style.left = Math.random() * 100 + "vw";
-                heart.style.animationDuration = (Math.random() * 3 + 2) + "s";
                 document.body.appendChild(heart);
                 setTimeout(() => heart.remove(), 5000);
             }, 300);
