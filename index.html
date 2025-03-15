@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block Blast & Courtship Prompt</title>
+    <title>Block Blast</title>
     <style>
         body {
             text-align: center;
@@ -18,7 +18,7 @@
             margin: auto;
             touch-action: none;
         }
-        .menu, .courtship {
+        .menu {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -37,50 +37,67 @@
             color: white;
             border-radius: 5px;
             margin: 10px;
-            transition: transform 0.3s ease;
         }
         .exit-button {
             background-color: #d9534f;
         }
-        #yes {
-            font-size: 20px;
-        }
-        #no {
+        #courtPrompt {
+            display: none;
+            font-size: 30px;
             position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #courtPrompt button {
+            padding: 10px 20px;
             font-size: 20px;
+            background-color: #ff5733;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #courtPrompt .hoverText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-size: 50px;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif;
         }
     </style>
 </head>
 <body>
-    <!-- Block Blast Game Menu -->
     <div id="menu" class="menu">
         <h1>Block Blast</h1>
         <button onclick="startGame()">Start Game</button>
         <button class="exit-button" onclick="exitGame()">Exit</button>
     </div>
-
-    <!-- Block Blast Game -->
     <div id="gameContainer" class="hidden">
         <h1>Block Blast</h1>
         <p>Level: <span id="level">1</span> | Lives: <span id="lives">3</span></p>
         <canvas id="gameCanvas" width="480" height="320"></canvas>
     </div>
-
-    <!-- Courtship Prompt -->
-    <div id="courtship" class="courtship hidden">
-        <h1>Can I court you?</h1>
-        <button id="yes" onclick="acceptCourtship()">Yes</button>
-        <button id="no" onmouseover="moveNoButton()">No</button>
+    <div id="courtPrompt">
+        <h1>Can I Court You?</h1>
+        <button onclick="respondToCourt(true)">Yes</button>
+        <button onclick="respondToCourt(false)">No</button>
+        <div class="hoverText">No</div>
     </div>
 
     <script>
         const menu = document.getElementById("menu");
         const gameContainer = document.getElementById("gameContainer");
-        const courtship = document.getElementById("courtship");
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const levelDisplay = document.getElementById("level");
         const livesDisplay = document.getElementById("lives");
+        const courtPrompt = document.getElementById("courtPrompt");
+        const hoverText = document.querySelector("#courtPrompt .hoverText");
+        let hoverDirection = 1;
 
         let ballX, ballY, ballDX, ballDY, ballRadius, paddleHeight, paddleWidth, paddleX;
         let rightPressed = false, leftPressed = false;
@@ -121,8 +138,17 @@
         }
 
         function exitGame() {
-            gameContainer.classList.add("hidden");
-            courtship.classList.remove("hidden");
+            courtPrompt.style.display = "block";
+            document.querySelector("button").addEventListener('click', respondToCourt);
+        }
+
+        function respondToCourt(response) {
+            courtPrompt.style.display = "none";
+            if (response) {
+                alert("You said Yes!");
+            } else {
+                alert("You said No!");
+            }
         }
 
         function drawBricks() {
@@ -143,11 +169,11 @@
                         levelDisplay.textContent = level;
                         initializeGame();
                     } else {
-                        exitGame();
+                        document.location.reload();
                     }
                 } else {
                     alert("Congratulations! You cleared all levels!");
-                    exitGame();
+                    document.location.reload();
                 }
             }
         }
@@ -199,7 +225,7 @@
                     livesDisplay.textContent = lives;
                     if (lives === 0) {
                         alert("Game Over!");
-                        exitGame();
+                        document.location.reload();
                     } else {
                         ballX = canvas.width / 2;
                         ballY = canvas.height - 30;
@@ -211,17 +237,6 @@
             ballX += ballDX;
             ballY += ballDY;
             requestAnimationFrame(draw);
-        }
-
-        function moveNoButton() {
-            const noButton = document.getElementById("no");
-            noButton.style.top = `${Math.random() * 80 + 10}vh`;
-            noButton.style.left = `${Math.random() * 80 + 10}vw`;
-            document.getElementById("yes").style.transform = "scale(1.3)";
-        }
-
-        function acceptCourtship() {
-            alert("Yay! Let's start our journey together! ❤️");
         }
 
         document.addEventListener("keydown", (event) => {
@@ -243,24 +258,28 @@
 
         canvas.addEventListener("touchmove", (event) => {
             let touchX = event.touches[0].clientX - canvas.offsetLeft;
+            paddleX = Math.max(0, Math.min(canvas.width
             paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, touchX - paddleWidth / 2));
         });
 
         function updatePaddle() {
-            if (rightPressed && paddleX < canvas.width - paddleWidth) {
-                paddleX += 7;
-            }
-            if (leftPressed && paddleX > 0) {
-                paddleX -= 7;
-            }
+            if (rightPressed) paddleX = Math.min(canvas.width - paddleWidth, paddleX + 5);
+            if (leftPressed) paddleX = Math.max(0, paddleX - 5);
+            requestAnimationFrame(updatePaddle);
         }
 
-        function gameLoop() {
-            updatePaddle();
-            draw();
+        updatePaddle();
+
+        // Function to make the "No" button hover around randomly
+        function moveHoverText() {
+            let newX = Math.random() * (window.innerWidth - hoverText.offsetWidth);
+            let newY = Math.random() * (window.innerHeight - hoverText.offsetHeight);
+            hoverText.style.left = `${newX}px`;
+            hoverText.style.top = `${newY}px`;
+            setTimeout(moveHoverText, 100); // Keeps it moving
         }
 
-        startGame();
+        moveHoverText(); // Start moving the "No" text around
     </script>
 </body>
 </html>
