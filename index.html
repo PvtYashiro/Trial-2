@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block Blast</title>
+    <title>Fixed Block Blast & Can I Court You</title>
     <style>
         body {
             text-align: center;
@@ -41,72 +41,23 @@
         .exit-button {
             background-color: #d9534f;
         }
-        /* "Can I Court You?" Styles */
-        .court-container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-            display: inline-block;
-            color: black;
-        }
-        .buttons {
-            margin-top: 20px;
-        }
-        .yes {
-            background-color: #ff4d79;
-            color: white;
-            font-size: 18px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            transition: 0.3s ease-in-out;
-        }
-        .yes:hover {
-            background-color: #ff1a4d;
-        }
-        .no {
-            background-color: #999;
-            color: white;
-            font-weight: bold;
-            position: absolute;
-            border-radius: 8px;
-            padding: 12px 20px;
-        }
     </style>
 </head>
 <body>
-
-    <!-- Block Blast Menu -->
     <div id="menu" class="menu">
         <h1>Block Blast</h1>
         <button onclick="startGame()">Start Game</button>
-        <button class="exit-button" onclick="showCourtScreen()">Exit</button>
+        <button class="exit-button" onclick="exitGame()">Exit</button>
     </div>
-
-    <!-- Block Blast Game -->
     <div id="gameContainer" class="hidden">
         <h1>Block Blast</h1>
         <p>Level: <span id="level">1</span> | Lives: <span id="lives">3</span></p>
         <canvas id="gameCanvas" width="480" height="320"></canvas>
     </div>
-
-    <!-- "Can I Court You?" Screen -->
-    <div id="courtContainer" class="hidden">
-        <div class="court-container">
-            <h1>Can I court you? ❤️</h1>
-            <p>I've been waiting to ask you this... Will you give me the chance to prove my love? 💕</p>
-            <div class="buttons">
-                <button class="yes" id="yesButton" onclick="sayYes()">Yes 💖</button>
-                <button class="no" id="noButton" onmouseover="moveNoButton()">No 😢</button>
-            </div>
-        </div>
-    </div>
-
+    
     <script>
         const menu = document.getElementById("menu");
         const gameContainer = document.getElementById("gameContainer");
-        const courtContainer = document.getElementById("courtContainer");
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const levelDisplay = document.getElementById("level");
@@ -150,17 +101,32 @@
             initializeGame();
         }
 
-        function showCourtScreen() {
-            menu.classList.add("hidden");
-            courtContainer.classList.remove("hidden");
+        function exitGame() {
+            let confirmExit = confirm("Are you sure you want to exit?");
+            if (confirmExit) {
+                alert("Redirecting to 'Can I Court You?' page...");
+                document.location.href = "can-i-court-you.html";
+            }
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.closePath();
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBricks();
             drawBall();
             drawPaddle();
-            collisionDetection();
+
             ballX += ballDX;
             ballY += ballDY;
 
@@ -181,57 +147,31 @@
                     } else {
                         ballX = canvas.width / 2;
                         ballY = canvas.height - 30;
+                        ballDX = 2;
+                        ballDY = -2;
                     }
                 }
             }
             requestAnimationFrame(draw);
         }
 
-        function drawBricks() {
-            for(let c = 0; c < brickColumnCount; c++) {
-                for(let r = 0; r < brickRowCount; r++) {
-                    if (bricks[c][r].status === 1) {
-                        ctx.fillStyle = "red";
-                        ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
-                    }
-                }
-            }
+        function updatePaddle() {
+            if (rightPressed) paddleX = Math.min(canvas.width - paddleWidth, paddleX + 5);
+            if (leftPressed) paddleX = Math.max(0, paddleX - 5);
+            requestAnimationFrame(updatePaddle);
         }
 
-        function drawPaddle() {
-            ctx.fillStyle = "blue";
-            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
-        }
-
-        function drawBall() {
-            ctx.beginPath();
-            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        function moveNoButton() {
-            let btn = document.getElementById("noButton");
-            btn.style.left = Math.random() * (window.innerWidth - 100) + "px";
-            btn.style.top = Math.random() * (window.innerHeight - 50) + "px";
-        }
-
-        function sayYes() {
-            courtContainer.innerHTML = "<h1>Yay! ❤️</h1><p>You made me so happy! 😍</p>";
-        }
-
-        document.addEventListener("keydown", event => {
+        document.addEventListener("keydown", (event) => {
             if (event.key === "ArrowRight") rightPressed = true;
             if (event.key === "ArrowLeft") leftPressed = true;
         });
 
-        document.addEventListener("keyup", event => {
+        document.addEventListener("keyup", (event) => {
             if (event.key === "ArrowRight") rightPressed = false;
             if (event.key === "ArrowLeft") leftPressed = false;
         });
 
+        updatePaddle();
     </script>
 </body>
 </html>
-
