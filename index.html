@@ -103,11 +103,50 @@
         }
 
         function exitGame() {
-            let confirmExit = confirm("Are you sure you want to exit?");
-            if (confirmExit) {
-                window.close();
-                alert("Your browser does not support closing via script. Please close manually.");
-            }
+            document.body.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: linear-gradient(to bottom, #ff9a9e, #fad0c4); text-align: center;">
+                    <h1 style="color: black;">Can I court you? ❤️</h1>
+                    <p style="color: black;">I've been waiting to ask you this... Will you give me the chance to prove my love? 💕</p>
+                    <div>
+                        <button class="yes" onclick="sayYes()" style="font-size: 18px; padding: 12px 20px; background-color: #ff4d79; color: white; font-weight: bold; border: none; cursor: pointer; border-radius: 8px;">Yes 💖</button>
+                        <button class="no" id="noButton" onmouseover="moveNoButton()" style="font-size: 18px; padding: 12px 20px; background-color: #999; color: white; font-weight: bold; position: absolute; border: none; cursor: pointer; border-radius: 8px;">No 😢</button>
+                    </div>
+                </div>
+            `;
+            createHearts();
+        }
+
+        function sayYes() {
+            document.body.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: linear-gradient(to bottom, #ff9a9e, #fad0c4); text-align: center;">
+                    <h1 style="color: black;">Yay! ❤️</h1>
+                    <p style="color: black;">You just made me the happiest person alive! 😍</p>
+                    <p style="color: black;">Can't wait to start this journey with you! 💕</p>
+                </div>
+            `;
+        }
+
+        function moveNoButton() {
+            let btn = document.getElementById("noButton");
+            let x = Math.random() * (window.innerWidth - 200);
+            let y = Math.random() * (window.innerHeight - 100);
+            btn.style.left = x + "px";
+            btn.style.top = y + "px";
+        }
+
+        function createHearts() {
+            setInterval(() => {
+                let heart = document.createElement("div");
+                heart.innerHTML = "❤️";
+                heart.style.position = "absolute";
+                heart.style.left = Math.random() * 100 + "vw";
+                heart.style.top = "100vh";
+                heart.style.color = "rgba(255, 255, 255, 0.8)";
+                heart.style.fontSize = "30px";
+                heart.style.animation = "floatUp 5s infinite";
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 5000);
+            }, 300);
         }
 
         function drawBricks() {
@@ -135,67 +174,6 @@
                     document.location.reload();
                 }
             }
-        }
-
-        function drawPaddle() {
-            ctx.fillStyle = "blue";
-            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
-        }
-
-        function drawBall() {
-            ctx.beginPath();
-            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        function collisionDetection() {
-            for (let c = 0; c < brickColumnCount; c++) {
-                for (let r = 0; r < brickRowCount; r++) {
-                    let brick = bricks[c][r];
-                    if (brick.status === 1) {
-                        if (ballX > brick.x && ballX < brick.x + brickWidth && ballY > brick.y && ballY < brick.y + brickHeight) {
-                            ballDY = -ballDY;
-                            brick.status = 0;
-                        }
-                    }
-                }
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBricks();
-            drawBall();
-            drawPaddle();
-            collisionDetection();
-
-            if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
-                ballDX = -ballDX;
-            }
-            if (ballY + ballDY < ballRadius) {
-                ballDY = -ballDY;
-            } else if (ballY + ballDY > canvas.height - paddleHeight - ballRadius) {
-                if (ballX > paddleX && ballX < paddleX + paddleWidth) {
-                    ballDY = -ballDY;
-                } else {
-                    lives--;
-                    livesDisplay.textContent = lives;
-                    if (lives === 0) {
-                        alert("Game Over!");
-                        document.location.reload();
-                    } else {
-                        ballX = canvas.width / 2;
-                        ballY = canvas.height - 30;
-                        ballDX = 2;
-                        ballDY = -2;
-                    }
-                }
-            }
-            ballX += ballDX;
-            ballY += ballDY;
-            requestAnimationFrame(draw);
         }
 
         document.addEventListener("keydown", (event) => {
