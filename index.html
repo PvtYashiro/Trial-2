@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block Blast & Courtship Prompt</title>
+    <title>Block Blast</title>
     <style>
         body {
             text-align: center;
@@ -11,6 +11,7 @@
             color: white;
             font-family: Arial, sans-serif;
             overflow: hidden;
+            margin: 0;
         }
         canvas {
             background: #000;
@@ -18,7 +19,7 @@
             margin: auto;
             touch-action: none;
         }
-        .menu, .courtship {
+        .menu, .courting {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -37,46 +38,80 @@
             color: white;
             border-radius: 5px;
             margin: 10px;
-            transition: transform 0.3s ease;
         }
         .exit-button {
             background-color: #d9534f;
         }
-        #yes {
-            font-size: 20px;
+        .courting {
+            background: linear-gradient(to bottom, #ff9a9e, #fad0c4);
         }
-        #no {
+        .courting h1, .courting p {
+            color: black;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .buttons {
+            margin-top: 20px;
+        }
+        .yes, .no {
+            font-size: 18px;
+            padding: 12px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        .yes {
+            background-color: #ff4d79;
+            color: white;
+            font-weight: bold;
+        }
+        .yes:hover {
+            background-color: #ff1a4d;
+        }
+        .no {
+            background-color: #999;
+            color: white;
+            font-weight: bold;
             position: absolute;
-            font-size: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Block Blast Game Menu -->
+    <!-- Block Blast Menu -->
     <div id="menu" class="menu">
         <h1>Block Blast</h1>
         <button onclick="startGame()">Start Game</button>
         <button class="exit-button" onclick="exitGame()">Exit</button>
     </div>
 
-    <!-- Block Blast Game -->
+    <!-- Game Screen -->
     <div id="gameContainer" class="hidden">
         <h1>Block Blast</h1>
         <p>Level: <span id="level">1</span> | Lives: <span id="lives">3</span></p>
         <canvas id="gameCanvas" width="480" height="320"></canvas>
     </div>
 
-    <!-- Courtship Prompt -->
-    <div id="courtship" class="courtship hidden">
-        <h1>Can I court you?</h1>
-        <button id="yes" onclick="acceptCourtship()">Yes</button>
-        <button id="no" onmouseover="moveNoButton()">No</button>
+    <!-- Can I Court You? Screen -->
+    <div id="courting" class="courting hidden">
+        <div class="container">
+            <h1>Can I court you? ❤️</h1>
+            <p>Will you give me the chance to prove my love? 💕</p>
+            <div class="buttons">
+                <button class="yes" id="yesButton" onclick="sayYes()">Yes 💖</button>
+                <button class="no" id="noButton" onmouseover="moveNoButton()">No 😢</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const menu = document.getElementById("menu");
         const gameContainer = document.getElementById("gameContainer");
-        const courtship = document.getElementById("courtship");
+        const courtingScreen = document.getElementById("courting");
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const levelDisplay = document.getElementById("level");
@@ -84,7 +119,7 @@
 
         let ballX, ballY, ballDX, ballDY, ballRadius, paddleHeight, paddleWidth, paddleX;
         let rightPressed = false, leftPressed = false;
-        let level = 1, maxLevels = 3, lives = 3;
+        let level = 1, lives = 3;
         let brickRowCount, brickColumnCount = 5, brickWidth = 75, brickHeight = 20, brickPadding = 10, brickOffsetTop = 30, brickOffsetLeft = 30;
         let bricks = [];
 
@@ -99,17 +134,17 @@
             paddleX = (canvas.width - paddleWidth) / 2;
             brickRowCount = level + 1;
             initializeBricks();
+            document.addEventListener("keydown", keyDownHandler);
+            document.addEventListener("keyup", keyUpHandler);
             draw();
         }
 
         function initializeBricks() {
             bricks = [];
-            for(let c = 0; c < brickColumnCount; c++) {
+            for (let c = 0; c < brickColumnCount; c++) {
                 bricks[c] = [];
-                for(let r = 0; r < brickRowCount; r++) {
-                    let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
-                    let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
-                    bricks[c][r] = { x: brickX, y: brickY, status: 1 };
+                for (let r = 0; r < brickRowCount; r++) {
+                    bricks[c][r] = { x: c * (brickWidth + brickPadding) + brickOffsetLeft, y: r * (brickHeight + brickPadding) + brickOffsetTop, status: 1 };
                 }
             }
         }
@@ -121,40 +156,37 @@
         }
 
         function exitGame() {
+            menu.classList.add("hidden");
             gameContainer.classList.add("hidden");
-            courtship.classList.remove("hidden");
+            courtingScreen.classList.remove("hidden");
         }
 
-        function drawBricks() {
-            let allCleared = true;
-            for(let c = 0; c < brickColumnCount; c++) {
-                for(let r = 0; r < brickRowCount; r++) {
-                    if (bricks[c][r].status === 1) {
-                        ctx.fillStyle = "red";
-                        ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
-                        allCleared = false;
-                    }
-                }
-            }
-            if (allCleared) {
-                if (level < maxLevels) {
-                    if (confirm("Level cleared! Proceed to the next level?")) {
-                        level++;
-                        levelDisplay.textContent = level;
-                        initializeGame();
-                    } else {
-                        exitGame();
-                    }
-                } else {
-                    alert("Congratulations! You cleared all levels!");
-                    exitGame();
-                }
-            }
+        function sayYes() {
+            document.body.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
+                    <h1>Yay! ❤️</h1>
+                    <p>You just made me the happiest person alive! 😍</p>
+                    <p>Can't wait to start this journey with you! 💕</p>
+                </div>
+            `;
         }
 
-        function drawPaddle() {
-            ctx.fillStyle = "blue";
-            ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        function moveNoButton() {
+            let btn = document.getElementById("noButton");
+            let x = Math.random() * (window.innerWidth - 100);
+            let y = Math.random() * (window.innerHeight - 50);
+            btn.style.left = x + "px";
+            btn.style.top = y + "px";
+        }
+
+        function keyDownHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
+            if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") rightPressed = false;
+            if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
         }
 
         function drawBall() {
@@ -165,15 +197,24 @@
             ctx.closePath();
         }
 
-        function collisionDetection() {
-            for(let c = 0; c < brickColumnCount; c++) {
-                for(let r = 0; r < brickRowCount; r++) {
-                    let brick = bricks[c][r];
-                    if (brick.status === 1) {
-                        if (ballX > brick.x && ballX < brick.x + brickWidth && ballY > brick.y && ballY < brick.y + brickHeight) {
-                            ballDY = -ballDY;
-                            brick.status = 0;
-                        }
+        function drawPaddle() {
+            // Move the paddle based on keypress
+            if (rightPressed && paddleX < canvas.width - paddleWidth) {
+                paddleX += 7;
+            } else if (leftPressed && paddleX > 0) {
+                paddleX -= 7;
+            }
+
+            ctx.fillStyle = "blue";
+            ctx.fillRect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight);
+        }
+
+        function drawBricks() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        ctx.fillStyle = "red";
+                        ctx.fillRect(bricks[c][r].x, bricks[c][r].y, brickWidth, brickHeight);
                     }
                 }
             }
@@ -184,44 +225,7 @@
             drawBricks();
             drawBall();
             drawPaddle();
-            collisionDetection();
-
-            if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
-                ballDX = -ballDX;
-            }
-            if (ballY + ballDY < ballRadius) {
-                ballDY = -ballDY;
-            } else if (ballY + ballDY > canvas.height - paddleHeight - ballRadius) {
-                if (ballX > paddleX && ballX < paddleX + paddleWidth) {
-                    ballDY = -ballDY;
-                } else {
-                    lives--;
-                    livesDisplay.textContent = lives;
-                    if (lives === 0) {
-                        alert("Game Over!");
-                        exitGame();
-                    } else {
-                        ballX = canvas.width / 2;
-                        ballY = canvas.height - 30;
-                        ballDX = 2;
-                        ballDY = -2;
-                    }
-                }
-            }
-            ballX += ballDX;
-            ballY += ballDY;
             requestAnimationFrame(draw);
-        }
-
-        function moveNoButton() {
-            const noButton = document.getElementById("no");
-            noButton.style.top = `${Math.random() * 80 + 10}vh`;
-            noButton.style.left = `${Math.random() * 80 + 10}vw`;
-            document.getElementById("yes").style.transform = "scale(1.3)";
-        }
-
-        function acceptCourtship() {
-            alert("Yay! Let's start our journey together! ❤️");
         }
     </script>
 </body>
