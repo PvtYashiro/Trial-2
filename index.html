@@ -122,6 +122,7 @@
         let level = 1, lives = 3;
         let brickRowCount, brickColumnCount = 5, brickWidth = 75, brickHeight = 20, brickPadding = 10, brickOffsetTop = 30, brickOffsetLeft = 30;
         let bricks = [];
+        let yesButtonSize = 18; // Initial size of the "Yes" button
 
         function initializeGame() {
             ballX = canvas.width / 2;
@@ -177,6 +178,12 @@
             let y = Math.random() * (window.innerHeight - 50);
             btn.style.left = x + "px";
             btn.style.top = y + "px";
+
+            // Increase the "Yes" button size
+            yesButtonSize += 5; // Increase size
+            let yesButton = document.getElementById("yesButton");
+            yesButton.style.fontSize = yesButtonSize + "px";
+            yesButton.style.padding = `${yesButtonSize / 2}px ${yesButtonSize}px`;
         }
 
         function keyDownHandler(e) {
@@ -225,6 +232,30 @@
             drawBricks();
             drawBall();
             drawPaddle();
+
+            // Ball bounce logic
+            if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) ballDX = -ballDX;
+            if (ballY + ballDY < ballRadius) ballDY = -ballDY;
+            else if (ballY + ballDY > canvas.height - ballRadius) {
+                if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+                    ballDY = -ballDY;
+                } else {
+                    lives--;
+                    if (lives <= 0) {
+                        alert("GAME OVER");
+                        document.location.reload();
+                    } else {
+                        ballX = canvas.width / 2;
+                        ballY = canvas.height - 30;
+                        ballDX = 2;
+                        ballDY = -2;
+                    }
+                }
+            }
+
+            ballX += ballDX;
+            ballY += ballDY;
+
             requestAnimationFrame(draw);
         }
     </script>
