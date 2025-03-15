@@ -79,16 +79,6 @@
             font-weight: bold;
             position: absolute;
         }
-        .heart {
-            position: absolute;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 30px;
-            animation: floatUp 5s infinite;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(100vh); opacity: 1; }
-            100% { transform: translateY(-10vh); opacity: 0; }
-        }
     </style>
 </head>
 <body>
@@ -129,7 +119,7 @@
 
         let ballX, ballY, ballDX, ballDY, ballRadius, paddleHeight, paddleWidth, paddleX;
         let rightPressed = false, leftPressed = false;
-        let level = 1, maxLevels = 3, lives = 3;
+        let level = 1, lives = 3;
         let brickRowCount, brickColumnCount = 5, brickWidth = 75, brickHeight = 20, brickPadding = 10, brickOffsetTop = 30, brickOffsetLeft = 30;
         let bricks = [];
 
@@ -144,6 +134,8 @@
             paddleX = (canvas.width - paddleWidth) / 2;
             brickRowCount = level + 1;
             initializeBricks();
+            document.addEventListener("keydown", keyDownHandler);
+            document.addEventListener("keyup", keyUpHandler);
             draw();
         }
 
@@ -179,19 +171,36 @@
             `;
         }
 
-       function moveNoButton() {
+        function moveNoButton() {
             let btn = document.getElementById("noButton");
             let x = Math.random() * (window.innerWidth - 100);
             let y = Math.random() * (window.innerHeight - 50);
             btn.style.left = x + "px";
             btn.style.top = y + "px";
+        }
 
-            // Increase the "Yes" button size
-            let yesButton = document.getElementById("yesButton");
-            yesButtonSize += 5; // Increase size
-            yesButton.style.fontSize = yesButtonSize + "px";
-            yesButton.style.padding = `${yesButtonSize / 2}px ${yesButtonSize}px`;
-      }
+        function keyDownHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
+            if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === "Right" || e.key === "ArrowRight") rightPressed = false;
+            if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight);
+        }
 
         function drawBricks() {
             for (let c = 0; c < brickColumnCount; c++) {
@@ -204,51 +213,13 @@
             }
         }
 
-        ffunction draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clears the canvas
-
-    drawBricks(); // Draws the bricks
-    drawBall();   // Draws the ball
-    drawPaddle(); // ✅ Draws the paddle
-
-    collisionDetection(); // Checks if the ball hits bricks
-
-    // Ball movement and collision with walls
-    if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
-        ballDX = -ballDX;
-    }
-    if (ballY + ballDY < ballRadius) {
-        ballDY = -ballDY;
-    } else if (ballY + ballDY > canvas.height - paddleHeight - ballRadius) {
-        if (ballX > paddleX && ballX < paddleX + paddleWidth) {
-            ballDY = -ballDY; // Ball bounces off paddle
-        } else {
-            lives--; // Reduce lives
-            livesDisplay.textContent = lives;
-            if (lives === 0) {
-                alert("Game Over!");
-                document.location.reload();
-            } else {
-                // Reset ball position
-                ballX = canvas.width / 2;
-                ballY = canvas.height - 30;
-                ballDX = 2;
-                ballDY = -2;
-            }
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            requestAnimationFrame(draw);
         }
-    }
-
-    // Move the ball
-    ballX += ballDX;
-    ballY += ballDY;
-
-    requestAnimationFrame(draw); // Keep the game running
-}
-        function drawPaddle() {
-    ctx.fillStyle = "blue";
-    ctx.fillRect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight);
-}
-        
     </script>
 </body>
 </html>
