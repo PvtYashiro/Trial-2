@@ -20,7 +20,7 @@
         }
 
         h1, p {
-            color: black; /* Text color is black */
+            color: black;
         }
 
         .container {
@@ -34,6 +34,8 @@
 
         .buttons {
             margin-top: 20px;
+            position: relative;
+            width: 100%;
         }
 
         button {
@@ -86,7 +88,7 @@
         }
     </style>
     <script>
-        let yesButtonSize = 18;
+        let yesButtonSize = 18; // Initial size for Yes button
 
         function sayYes() {
             document.body.innerHTML = `
@@ -100,13 +102,19 @@
 
         function moveNoButton() {
             let btn = document.getElementById("noButton");
-            let x = Math.random() * (window.innerWidth - 100);
-            let y = Math.random() * (window.innerHeight - 50);
+            let container = document.querySelector(".container");
+
+            let maxX = container.offsetWidth - btn.offsetWidth - 20; // Keep within box width
+            let maxY = container.offsetHeight - btn.offsetHeight - 20; // Keep within box height
+
+            let x = Math.random() * maxX;
+            let y = Math.random() * maxY;
+
             btn.style.left = x + "px";
             btn.style.top = y + "px";
 
             let yesButton = document.getElementById("yesButton");
-            yesButtonSize += 5;
+            yesButtonSize += 5; // Increase size
             yesButton.style.fontSize = yesButtonSize + "px";
             yesButton.style.padding = (yesButtonSize / 2) + "px " + (yesButtonSize) + "px";
         }
